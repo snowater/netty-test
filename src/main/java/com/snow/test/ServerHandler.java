@@ -1,5 +1,6 @@
 package com.snow.test;
 
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 
@@ -9,17 +10,21 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        System.out.println("Server Active");
+        System.out.println();
         InetSocketAddress insocket = (InetSocketAddress) ctx.channel().remoteAddress();
         String ip = insocket.getAddress().getHostAddress();
         String name = insocket.getAddress().getHostName();
         String name2 = insocket.getHostName();
-        System.out.println(ip + " " + name + " " + name2);
+        System.out.println(String.format("channel active %s %s %s", ip, name, name2));
     }
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        System.out.println("Server received: " + msg);
+        ByteBuf byteBuf = (ByteBuf) msg;
+        byte[] arr = new byte[byteBuf.readableBytes()];
+        byteBuf.readBytes(arr);
+        System.out.println("server received: " + new String(arr));
+        byteBuf.readerIndex(0); // 重置读取下标
         ctx.writeAndFlush(msg);
     }
 

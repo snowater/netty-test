@@ -12,19 +12,22 @@ import java.net.InetSocketAddress;
 
 public class Server {
     private final int port;
+    private static int CPU_PROCESSOR = Runtime.getRuntime().availableProcessors();
 
     public Server(int port) {
         this.port = port;
     }
 
     public void start() throws Exception {
-        EventLoopGroup group = new NioEventLoopGroup();
+
+        EventLoopGroup bossGroup = new NioEventLoopGroup();
+        EventLoopGroup workerGroup = new NioEventLoopGroup(CPU_PROCESSOR * 2);
         try {
             // create ServerBootstrap instance
             ServerBootstrap b = new ServerBootstrap();
             // Specifies NIO transport, local socket address
             // Adds handler to channel pipeline
-            b.group(group).channel(NioServerSocketChannel.class).localAddress(new InetSocketAddress(port)) // 设置监听端口
+            b.group(bossGroup, workerGroup).channel(NioServerSocketChannel.class).localAddress(new InetSocketAddress(port)) // 设置监听端口
                             .childHandler(new ChannelInitializer<Channel>() { // 有连接到达是会创建一个channel
                                 @Override
                                 protected void initChannel(Channel ch) throws Exception {
@@ -38,7 +41,8 @@ public class Server {
             System.out.println(Server.class.getName() + " started and listen on " + f.channel().localAddress());
             f.channel().closeFuture().sync();
         } finally {
-            group.shutdownGracefully().sync();
+            bossGroup.shutdownGracefully().sync();
+            workerGroup.shutdownGracefully().sync();
         }
     }
 
