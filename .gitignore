@@ -1,0 +1,9 @@
+/*/.settings/
+/*/target/
+/*/log/
+/**/.gitignore
+.*
+*.bak
+*.iml
+*.log
+*.lock
